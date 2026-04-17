@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CKS 預約系統（Firebase）</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>預約系統</h1>
+        <p class="subtitle">Firebase 後端版本（初版）</p>
+      </header>
+
+      <section class="card">
+        <h2>新增預約</h2>
+        <form id="bookingForm">
+          <div class="grid">
+            <label>
+              日期
+              <input type="date" id="date" required />
+            </label>
+
+            <label>
+              時段
+              <select id="slot" required>
+                <option value="">請選擇</option>
+                <option value="08:00-10:00">08:00-10:00</option>
+                <option value="10:00-12:00">10:00-12:00</option>
+                <option value="14:00-16:00">14:00-16:00</option>
+                <option value="16:00-18:00">16:00-18:00</option>
+              </select>
+            </label>
+
+            <label>
+              場地/資源
+              <select id="resourceId" required>
+                <option value="">請選擇</option>
+                <option value="room-a">Room A</option>
+                <option value="room-b">Room B</option>
+                <option value="court-1">Court 1</option>
+              </select>
+            </label>
+
+            <label>
+              申請者姓名
+              <input type="text" id="applicantName" required />
+            </label>
+
+            <label>
+              Email
+              <input type="email" id="email" required />
+            </label>
+
+            <label>
+              電話
+              <input type="tel" id="phone" required />
+            </label>
+
+            <label class="full">
+              備註
+              <textarea id="note" rows="3" placeholder="可留空"></textarea>
+            </label>
+          </div>
+
+          <button type="submit">送出預約</button>
+          <p id="formMessage" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="list-header">
+          <h2>預約清單</h2>
+          <button id="refreshBtn" type="button">重新整理</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>時段</th>
+                <th>場地</th>
+                <th>申請者</th>
+                <th>Email</th>
+                <th>電話</th>
+              </tr>
+            </thead>
+            <tbody id="bookingRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
