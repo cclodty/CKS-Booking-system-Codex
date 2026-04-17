@@ -74,6 +74,11 @@ function setMockRecords(records) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 }
 
+function createBookingId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `b_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
 function createMockStore() {
   return {
     mode: "mock",
@@ -106,7 +111,7 @@ async function createFirebaseStore() {
   const firebaseModule = await import("./firebase.js");
   const firestore = await import("https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js");
   const { db } = firebaseModule;
-  const { collection, addDoc, deleteDoc, doc, getDocs, limit, orderBy, query, serverTimestamp, where } = firestore;
+  const { collection, addDoc, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp } = firestore;
 
   return {
     mode: "firebase",
@@ -115,16 +120,25 @@ async function createFirebaseStore() {
       return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     },
     async listFutureBookings() {
-      const snap = await getDocs(query(collection(db, "bookings"), where("date", ">=", today), orderBy("date", "asc"), orderBy("time", "asc")));
-      return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const snap = await getDocs(query(collection(db, "bookings"), orderBy("date", "asc")));
+      return snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((item) => item.date >= today)
+        .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
     },
     async listByName(name) {
-      const snap = await getDocs(query(collection(db, "bookings"), where("booker", "==", name), where("date", ">=", today), orderBy("date", "asc"), orderBy("time", "asc")));
-      return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const normalized = name.toLowerCase();
+      const snap = await getDocs(query(collection(db, "bookings"), orderBy("date", "asc")));
+      return snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((item) => item.date >= today && String(item.booker || "").toLowerCase() === normalized)
+        .sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
     },
     async hasConflict(date, roomId, time) {
-      const snap = await getDocs(query(collection(db, "bookings"), where("date", "==", date), where("roomId", "==", roomId), where("time", "==", time), limit(1)));
-      return !snap.empty;
+      const snap = await getDocs(query(collection(db, "bookings"), orderBy("date", "asc")));
+      return snap.docs
+        .map((d) => d.data())
+        .some((item) => item.date === date && item.roomId === roomId && item.time === time);
     },
     async addBooking(payload) {
       await addDoc(collection(db, "bookings"), { ...payload, createdAt: serverTimestamp() });
@@ -351,7 +365,7 @@ async function initApp() {
     }
 
     await store.addBooking({
-      id: crypto.randomUUID(),
+      id: createBookingId(),
       date: state.selectedDate,
       roomId: state.selectedRoomId,
       roomName: safeName(room),
