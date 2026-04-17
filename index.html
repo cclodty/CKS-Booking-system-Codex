@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>課室及功能室預約系統</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner app-width">
+        <div class="brand">📘 課室及功能室預約系統</div>
+        <nav class="main-nav" aria-label="主選單">
+          <button class="nav-btn active" data-view="booking">預約課室</button>
+          <button class="nav-btn" data-view="myBookings">我的預約</button>
+          <button class="nav-btn" data-view="print">時間表列印</button>
+          <button class="nav-btn admin-only hidden" data-view="admin">管理後台</button>
+        </nav>
+        <div class="topbar-actions">
+          <button id="adminLoginBtn" class="ghost-btn">👥 管理員登入</button>
+          <div id="adminSession" class="admin-session hidden">
+            <span>👤 jessi</span>
+            <button id="adminLogoutBtn" class="ghost-btn slim">登出</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-width main-wrap">
+      <section id="booking" class="view active">
+        <article class="panel date-panel">
+          <h2>📅 選擇日期</h2>
+          <input id="selectedDate" type="date" />
+        </article>
+
+        <div class="booking-layout">
+          <article class="panel room-panel">
+            <div class="panel-header">
+              <h3>可選課室/功能室</h3>
+              <span class="count" id="roomCount">0</span>
+            </div>
+            <input id="roomSearch" type="search" placeholder="🔍 輸入名稱或室號搜尋..." />
+            <div class="segmented">
+              <button class="seg-btn active" data-filter="all">全部</button>
+              <button class="seg-btn" data-filter="classroom">課室</button>
+              <button class="seg-btn" data-filter="special">功能室</button>
+            </div>
+            <div id="roomList" class="room-list"></div>
+          </article>
+
+          <article class="panel slot-panel">
+            <h3 id="selectedRoomTitle">120</h3>
+            <div id="slotGrid" class="slot-grid"></div>
+            <div class="divider"></div>
+            <h4>🕘 自訂連續時間段預約</h4>
+            <div class="custom-row">
+              <label>開始 <input id="customStart" type="time" /></label>
+              <label>結束 <input id="customEnd" type="time" /></label>
+              <button id="customBookBtn" class="primary">📩 送出預約</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="myBookings" class="view">
+        <article class="panel">
+          <div class="table-toolbar">
+            <div>
+              <h2>🕘 我的預約記錄</h2>
+              <p>輸入您預約時填寫的姓名，查詢今天及未來的預約記錄</p>
+            </div>
+            <div class="search-row">
+              <input id="myNameInput" type="text" placeholder="輸入預約人姓名" />
+              <button id="searchMyBookings" class="primary">🔎 查詢</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>時段</th>
+                <th>課室/功能室</th>
+                <th>預約人 / 用途</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="myBookingRows">
+              <tr><td colspan="5" class="empty">請在上方輸入姓名並點擊查詢</td></tr>
+            </tbody>
+          </table>
+        </article>
+      </section>
+
+      <section id="print" class="view">
+        <article class="panel">
+          <div class="table-toolbar">
+            <h2>🖨️ 一週時間表列印</h2>
+            <button id="printBtn" class="dark">🖨️ 執行列印</button>
+          </div>
+          <div class="week-row">
+            <button id="prevWeek" class="ghost-btn">上週</button>
+            <input id="weekStart" type="date" />
+            <button id="nextWeek" class="ghost-btn">下週</button>
+          </div>
+          <article class="selector-box">
+            <div class="table-toolbar compact">
+              <p>選擇要列印的課室（每列印一室一頁）</p>
+              <div>
+                <button id="checkAllRooms" class="link-btn">全選</button>
+                <button id="uncheckAllRooms" class="link-btn">全不選</button>
+              </div>
+            </div>
+            <div id="printRoomChecks" class="checks"></div>
+          </article>
+          <div id="printPreview" class="preview-box">請至少勾選一個課室進行預覽與列印</div>
+        </article>
+      </section>
+
+      <section id="admin" class="view">
+        <div class="admin-layout">
+          <aside class="admin-menu panel">
+            <button class="admin-tab active" data-admin-tab="records">📝 預約記錄</button>
+            <button class="admin-tab" data-admin-tab="accounts">👥 帳戶管理</button>
+          </aside>
+          <article class="panel">
+            <section id="adminRecords" class="admin-view active">
+              <div class="table-toolbar">
+                <h2>📚 預約管理（未來記錄）</h2>
+                <div>
+                  <button id="refreshAdmin" class="ghost-btn">⟳ 重新整理</button>
+                  <button id="exportCsv" class="green">⬇ 匯出 CSV</button>
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>日期</th>
+                    <th>時間</th>
+                    <th>課室/功能室</th>
+                    <th>預約人</th>
+                    <th>用途</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="adminRows"></tbody>
+              </table>
+            </section>
+
+            <section id="adminAccounts" class="admin-view">
+              <h2>👥 帳戶管理</h2>
+              <p>此頁先做介面克隆，後續可再接 Firebase Authentication / 權限控管。</p>
+              <div class="account-form">
+                <input placeholder="輸入管理員帳號" />
+                <input type="password" placeholder="密碼" />
+                <select>
+                  <option>一般管理員</option>
+                  <option>超級管理員</option>
+                </select>
+                <button class="primary">👤 新增帳戶</button>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>帳號名稱</th><th>權限角色</th><th>操作</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>c*****n</td><td>超級管理員</td><td><button disabled>無權限修改</button></td></tr>
+                  <tr><td>jessi（您）</td><td>一般管理員</td><td><button>編輯</button></td></tr>
+                  <tr><td>moses</td><td>一般管理員</td><td><button disabled>無權限修改</button></td></tr>
+                </tbody>
+              </table>
+            </section>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="bookingDialog" class="booking-dialog">
+      <form id="confirmForm" method="dialog">
+        <header>
+          <h3>確認預約資訊</h3>
+          <button id="closeDialog" type="button" class="link-btn">✕</button>
+        </header>
+        <div id="bookingSummary" class="summary"></div>
+        <label>預約類型
+          <select id="bookingType">
+            <option>單次預約（僅限選擇的單日）</option>
+            <option>每週重複（之後再細化）</option>
+          </select>
+        </label>
+        <label>預約人姓名 *<input id="bookerName" required placeholder="請輸入您的真實姓名" /></label>
+        <label>預約用途 / 備註 *<input id="bookerPurpose" required placeholder="例如：學會會議、補課..." /></label>
+        <button class="primary" value="default">確認送出預約</button>
+      </form>
+    </dialog>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
