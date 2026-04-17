@@ -1,48 +1,69 @@
-# CKS Booking System (Firebase 版本草案)
+# CKS Booking System Clone（Firebase + Preview Mode）
 
-這個專案是「仿製學校預約系統 UI + 改用 Firebase 作為後端」的第一版骨架。
-目前先完成：
+此版本是依照你提供的截圖重建的前端架構，支援：
 
-- 基礎預約頁面（日期、時段、場地、申請者資料）
-- Firestore 寫入預約資料
-- Firestore 讀取今日之後的預約清單
-- 衝突檢查（同場地+同日期+同時段不可重複）
-- **無 Firebase 設定時可用預覽模式（localStorage）**
+- `預約課室`（日期、課室清單、節次卡、自訂時間段、確認彈窗）
+- `我的預約`（按姓名查詢）
+- `時間表列印`（一週起始日、課室勾選、預覽/列印）
+- `管理後台`（預約記錄、帳戶管理 UI、CSV 匯出、刪除）
+- Firebase Firestore 優先 + 無設定時 LocalStorage fallback
 
-> 由於原始站點目前無法直接連線取得頁面內容（403），此版先提供可運作的近似預約流程，後續可再依你指定的細節逐步微調成更接近原系統。
+---
 
-## 先看成果（不用 Firebase）
+## 快速預覽（不需 Firebase）
 
-1. 在專案根目錄執行：
-   ```bash
-   python3 -m http.server 5500
-   ```
-2. 打開瀏覽器進入：
-   `http://localhost:5500`
-3. 頁面副標題若顯示「預覽模式（LocalStorage 模擬資料）」代表可直接試填表單。
+```bash
+python3 -m http.server 5500
+```
 
-## 接上 Firebase（正式資料）
+開啟：`http://localhost:5500`
 
-1. 建立 Firebase 專案，啟用 Firestore。
-2. 複製 `src/firebase.example.js` 成 `src/firebase.js`，填入你的 Firebase 設定。
-3. 重新整理頁面。
-4. 頁面副標題顯示「Firebase 後端版本（已連線）」即代表已接上 Firestore。
+若未設定 `src/firebase.js`，系統會自動進入 LocalStorage 預覽模式。
 
-## Firestore 結構
+---
 
-Collection: `bookings`
+## 啟用 Firebase
 
-文件欄位：
-- `resourceId` (string)
-- `date` (string, YYYY-MM-DD)
-- `slot` (string)
-- `applicantName` (string)
-- `email` (string)
-- `phone` (string)
-- `note` (string)
-- `createdAt` (serverTimestamp)
+1. 在 Firebase 建立專案並啟用 Firestore。
+2. 複製 `src/firebase.example.js` 為 `src/firebase.js`。
+3. 填入你的 Firebase 專案設定。
+4. 重新整理頁面。
 
-## Firestore 安全規則（開發期示例）
+> `src/firebase.js` 已在 `.gitignore`，不會被提交到 Git。
+
+---
+
+## GitHub Actions / GitHub Pages 部署檢查
+
+部署後若頁面有功能但查詢/預約報錯，先檢查：
+
+- Firestore 規則是否允許讀寫（開發期可先放寬）
+- 瀏覽器 Console 是否有 Firebase 欄位或權限錯誤
+- 是否漏了 `src/firebase.js`（這個檔案需在部署流程中自行提供）
+
+---
+
+## 如果你在清理舊版本時弄亂了（重置到最新工作版本）
+
+> 以下命令會覆蓋你本機未提交變更，請先確認。
+
+```bash
+git fetch origin
+git checkout work
+git reset --hard origin/work
+```
+
+如果你是要把 `main` 直接更新為 `work`：
+
+```bash
+git checkout main
+git reset --hard origin/work
+git push --force-with-lease origin main
+```
+
+---
+
+## 開發期 Firestore 規則（示例）
 
 ```js
 rules_version = '2';
@@ -55,4 +76,4 @@ service cloud.firestore {
 }
 ```
 
-上線前請改成嚴格規則（例如需登入、限制欄位格式與可寫入範圍）。
+上線前請改成正式權限規則（登入、欄位驗證、角色限制）。
